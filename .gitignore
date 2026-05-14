@@ -1,0 +1,33 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Model weights & Checkpoints
+*.safetensors
+*.bin
+*.pt
+medical_qwen_lora/
+lora_medical_qwen/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary logs
+notebook_summary.txt
