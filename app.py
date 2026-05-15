@@ -1,7 +1,6 @@
 import streamlit as st
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
+from unsloth import FastLanguageModel
 
 # Configure Streamlit page
 st.set_page_config(
@@ -11,35 +10,30 @@ st.set_page_config(
 )
 
 st.title("🏥 Medical Q&A Assistant")
-st.markdown("*Powered by Fine-tuned Qwen2.5-0.5B (CPU/GPU Compatible)*")
+st.markdown("*Powered by Fine-tuned Qwen2.5-0.5B via Unsloth & QLoRA*")
 
 # Load model using Streamlit cache so it only loads once
 @st.cache_resource
 def load_model():
-    base_model_name = "Qwen/Qwen2.5-0.5B-Instruct"
-    adapter_name = "deepakj111/medical-qwen2.5-0.5B-lora"
-    
-    # Detect device: fallback to CPU if no GPU
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    
-    # Load base model
-    model = AutoModelForCausalLM.from_pretrained(
-        base_model_name,
-        device_map=device,
-        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+    model_name = "deepakj111/medical-qwen2.5-0.5B-lora"
+    max_seq_length = 1024
+
+    # Using st.spinner inside cache requires the user to see the first load
+    # but subsequent reloads will skip this.
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name=model_name,
+        max_seq_length=max_seq_length,
+        dtype=None,
+        load_in_4bit=True,
     )
-    
-    # Load LoRA adapters
-    model = PeftModel.from_pretrained(model, adapter_name)
-    
-    tokenizer = AutoTokenizer.from_pretrained(base_model_name)
-    return model, tokenizer, device
+    FastLanguageModel.for_inference(model)
+    return model, tokenizer
 
 try:
     with st.spinner("Loading model weights from Hugging Face... This may take a minute."):
-        model, tokenizer, device = load_model()
+        model, tokenizer = load_model()
 except Exception as e:
-    st.error(f"Error loading model. Details: {e}")
+    st.error(f"Error loading model. Please ensure you have a GPU with sufficient memory. Details: {e}")
     st.stop()
 
 # Initialize chat history
@@ -77,9 +71,9 @@ if prompt := st.chat_input("Ask a medical question... (e.g., What are the sympto
                 return_tensors="pt", 
                 truncation=True, 
                 max_length=512
-            ).to(device)
+            ).to("cuda")
             
-            with st.spinner(f"Generating answer on {device.upper()}..."):
+            with st.spinner("Generating answer..."):
                 with torch.no_grad():
                     outputs = model.generate(
                         **inputs, 

@@ -1,26 +1,22 @@
+from unsloth import FastLanguageModel
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
 
 # 1. Load the fine-tuned model and tokenizer from HuggingFace Hub
-base_model_name = "Qwen/Qwen2.5-0.5B-Instruct"
-adapter_name = "deepakj111/medical-qwen2.5-0.5B-lora"
+model_name = "deepakj111/medical-qwen2.5-0.5B-lora"
+max_seq_length = 1024
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Loading model on {device.upper()}...")
-
-# Load base model
-model = AutoModelForCausalLM.from_pretrained(
-    base_model_name,
-    device_map=device,
-    torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+print(f"Loading model: {model_name}...")
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name=model_name,
+    max_seq_length=max_seq_length,
+    dtype=None,
+    load_in_4bit=True, # Use 4bit quantization to save memory
 )
 
-# Apply LoRA adapters
-model = PeftModel.from_pretrained(model, adapter_name)
-tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+# 2. Enable native 2x faster inference for Unsloth
+FastLanguageModel.for_inference(model)
 
-# 2. Define the prompt format
+# 3. Define the prompt format
 def generate_response(question: str) -> str:
     # Using ChatML format which Qwen2.5-Instruct uses
     prompt = (
@@ -34,7 +30,7 @@ def generate_response(question: str) -> str:
         return_tensors="pt", 
         truncation=True, 
         max_length=512
-    ).to(device)
+    ).to("cuda")
     
     with torch.no_grad():
         outputs = model.generate(
@@ -51,7 +47,7 @@ def generate_response(question: str) -> str:
     response = tokenizer.decode(outputs[0][input_len:], skip_special_tokens=True).strip()
     return response
 
-# 3. Run inference examples
+# 4. Run inference examples
 if __name__ == "__main__":
     example_questions = [
         "What are the common symptoms of Type 2 Diabetes?",
