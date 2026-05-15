@@ -42,13 +42,29 @@ After fine-tuning, the model shows significant improvement in medical Q&A tasks:
 
 ## 🛠️ Local Setup & Inference
 
-1. **Install Dependencies**:
+This project uses [`uv`](https://github.com/astral-sh/uv) for fast, deterministic, production-grade dependency management.
+
+1. **Install `uv`**:
 ```bash
-pip install -r requirements.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-2. **Run Inference**:
-Use the provided `inference.py` script to chat with the model locally.
+2. **Sync the Environment**:
 ```bash
-python inference.py
+uv sync
+```
+
+3. **Run the Jupyter Notebook Locally**:
+```bash
+uv run jupyter notebook
+```
+
+4. **Run the Streamlit UI**:
+```bash
+uv run streamlit run app.py
+```
+
+5. **Run Terminal Inference**:
+```bash
+uv run python inference.py
 ```

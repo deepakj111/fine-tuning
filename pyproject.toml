@@ -1,0 +1,27 @@
+[project]
+name = "fine-tuning"
+version = "0.1.0"
+description = "Qwen2.5-0.5B Medical Domain Fine-Tuning"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "accelerate>=1.2.0",
+    "bitsandbytes>=0.44.0",
+    "datasets>=3.0.0",
+    "evaluate>=0.4.2",
+    "ipykernel",
+    "jupyter",
+    "nltk>=3.8",
+    "peft>=0.14.0",
+    "plotly>=5.20.0",
+    "python-dotenv",
+    "rich>=13.0.0",
+    "rouge-score>=0.1.2",
+    "sentencepiece>=0.2.0",
+    "streamlit>=1.32.0",
+    "torch>=2.0.0",
+    "transformers>=4.47.0",
+    "trl>=0.12.0",
+    "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git",
+    "xformers",
+]
