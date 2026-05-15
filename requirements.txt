@@ -12,3 +12,4 @@ plotly>=5.20.0
 rich>=13.0.0
 sentencepiece>=0.2.0
 xformers
+streamlit>=1.32.0
