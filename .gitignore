@@ -22,6 +22,7 @@ __pycache__/
 *.pt
 medical_qwen_lora/
 lora_medical_qwen/
+unsloth_compiled_cache/
 
 # IDEs
 .idea/

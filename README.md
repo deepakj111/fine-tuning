@@ -54,17 +54,31 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync
 ```
 
-3. **Run the Jupyter Notebook Locally**:
+3. **Environment Variables**:
+Copy the example environment file and add your tokens:
+```bash
+cp .env.example .env
+```
+- `HF_TOKEN`: Required to push models to Hugging Face.
+- `WANDB_API_KEY`: Required for Weights & Biases experiment tracking.
+
+4. **Production Training Script (Recommended)**:
+Run the production-grade training pipeline via terminal:
+```bash
+uv run python train.py --epochs 3 --batch_size 2
+```
+
+5. **Run the Jupyter Notebook Locally**:
 ```bash
 uv run jupyter notebook
 ```
 
-4. **Run the Streamlit UI**:
+6. **Run the Streamlit UI**:
 ```bash
 uv run streamlit run app.py
 ```
 
-5. **Run Terminal Inference**:
+7. **Run Terminal Inference**:
 ```bash
 uv run python inference.py
 ```
