@@ -1,3 +1,5 @@
+from typing import Any
+
 import streamlit as st
 import torch
 from unsloth import FastLanguageModel
@@ -14,7 +16,7 @@ st.markdown("*Powered by Fine-tuned Qwen2.5-0.5B via Unsloth & QLoRA*")
 
 # Load model using Streamlit cache so it only loads once
 @st.cache_resource
-def load_model():
+def load_model() -> tuple[Any, Any]:
     model_name = "deepakj111/medical-qwen2.5-0.5B-lora"
     max_seq_length = 1024
 

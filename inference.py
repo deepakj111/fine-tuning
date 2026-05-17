@@ -1,5 +1,5 @@
-from unsloth import FastLanguageModel
 import torch
+from unsloth import FastLanguageModel
 
 # 1. Load the fine-tuned model and tokenizer from HuggingFace Hub
 model_name = "deepakj111/medical-qwen2.5-0.5B-lora"

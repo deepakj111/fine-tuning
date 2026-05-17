@@ -1,28 +1,25 @@
-import os
 import argparse
+import os
 import time
+import warnings
+from typing import Any
+
+import torch
+import wandb
+from datasets import Dataset, concatenate_datasets, load_dataset
 from dotenv import load_dotenv
+from trl import SFTConfig, SFTTrainer
+from unsloth import FastLanguageModel
 
 # Load environment variables
 load_dotenv()
 
-# We set wandb project name before importing transformers/unsloth
-os.environ["WANDB_PROJECT"] = "medical-qwen2.5-finetuning"
-
-import torch
-import wandb
-from datasets import load_dataset, Dataset, concatenate_datasets
-from trl import SFTTrainer, SFTConfig
-from transformers import TrainingArguments
-
 # Ignore FutureWarnings from Transformers
-import warnings
 warnings.filterwarnings("ignore", message=".*AttentionMaskConverter.*", category=FutureWarning)
 warnings.filterwarnings("ignore", message=".*attention mask.*deprecated.*", category=FutureWarning)
 
-from unsloth import FastLanguageModel
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Fine-tune Qwen2.5 on Medical Data")
     parser.add_argument("--model_name", type=str, default="unsloth/Qwen2.5-0.5B-Instruct", help="Base model name")
     parser.add_argument("--max_seq_length", type=int, default=1024, help="Maximum sequence length")
@@ -38,7 +35,7 @@ def parse_args():
     parser.add_argument("--disable_wandb", action="store_true", help="Disable W&B tracking")
     return parser.parse_args()
 
-def prepare_data(tokenizer, max_seq_len):
+def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
     print("📥 Loading Medical Meadow Flashcards dataset...")
     raw_dataset = load_dataset("medalpaca/medical_meadow_medical_flashcards", split="train")
     df = raw_dataset.to_pandas()
@@ -101,7 +98,7 @@ def prepare_data(tokenizer, max_seq_len):
     
     return train_dataset
 
-def main():
+def main() -> None:
     args = parse_args()
     
     # 1. Check GPU & Setup Tracking
