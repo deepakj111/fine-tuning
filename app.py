@@ -5,14 +5,11 @@ import torch
 from unsloth import FastLanguageModel
 
 # Configure Streamlit page
-st.set_page_config(
-    page_title="Medical Q&A Assistant",
-    page_icon="🏥",
-    layout="centered"
-)
+st.set_page_config(page_title="Medical Q&A Assistant", page_icon="🏥", layout="centered")
 
 st.title("🏥 Medical Q&A Assistant")
 st.markdown("*Powered by Fine-tuned Qwen2.5-0.5B via Unsloth & QLoRA*")
+
 
 # Load model using Streamlit cache so it only loads once
 @st.cache_resource
@@ -30,6 +27,7 @@ def load_model() -> tuple[Any, Any]:
     )
     FastLanguageModel.for_inference(model)
     return model, tokenizer
+
 
 try:
     with st.spinner("Loading model weights from Hugging Face... This may take a minute."):
@@ -51,7 +49,7 @@ for message in st.session_state.messages:
 if prompt := st.chat_input("Ask a medical question... (e.g., What are the symptoms of Type 2 Diabetes?)"):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
-    
+
     # Display user message in chat message container
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -59,38 +57,33 @@ if prompt := st.chat_input("Ask a medical question... (e.g., What are the sympto
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
-        
+
         # Build prompt using ChatML format (matching inference.py)
         formatted_prompt = (
             f"<|im_start|>system\nYou are a helpful medical assistant.\n<|im_end|>\n"
             f"<|im_start|>user\n{prompt}\n<|im_end|>\n"
             f"<|im_start|>assistant\n"
         )
-        
+
         try:
-            inputs = tokenizer(
-                formatted_prompt, 
-                return_tensors="pt", 
-                truncation=True, 
-                max_length=512
-            ).to("cuda")
-            
+            inputs = tokenizer(formatted_prompt, return_tensors="pt", truncation=True, max_length=512).to("cuda")
+
             with st.spinner("Generating answer..."):
                 with torch.no_grad():
                     outputs = model.generate(
-                        **inputs, 
+                        **inputs,
                         max_new_tokens=256,
                         do_sample=True,
                         temperature=0.3,
                         repetition_penalty=1.15,
                         pad_token_id=tokenizer.eos_token_id,
                     )
-                    
+
                 input_len = inputs["input_ids"].shape[1]
                 response = tokenizer.decode(outputs[0][input_len:], skip_special_tokens=True).strip()
-                
+
                 message_placeholder.markdown(response)
-                
+
             # Add assistant response to chat history
             st.session_state.messages.append({"role": "assistant", "content": response})
         except Exception as e:
