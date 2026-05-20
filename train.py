@@ -40,6 +40,29 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def format_medical_sample(row: dict) -> dict:
+    return {
+        "text": (
+            f"<|im_start|>system\n"
+            f"You are a medical education assistant. "
+            f"Answer the following medical question clearly and accurately.\n"
+            f"<|im_end|>\n"
+            f"<|im_start|>user\n{row['question']}\n<|im_end|>\n"
+            f"<|im_start|>assistant\n{row['answer']}<|im_end|>"
+        )
+    }
+
+
+def format_ultrachat(example: dict) -> dict:
+    messages = example.get("messages", [])
+    text = ""
+    for msg in messages[:4]:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")[:300]
+        text += f"<|im_start|>{role}\n{content}\n<|im_end|>\n"
+    return {"text": text.strip()}
+
+
 def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
     print("📥 Loading Medical Meadow Flashcards dataset...")
     raw_dataset = load_dataset("medalpaca/medical_meadow_medical_flashcards", split="train")
@@ -54,18 +77,6 @@ def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
     df_filtered = df_filtered.sample(frac=1, random_state=42).reset_index(drop=True)
     df_train = df_filtered.iloc[:1000]  # Use 1000 samples for training
 
-    def format_medical_sample(row):
-        return {
-            "text": (
-                f"<|im_start|>system\n"
-                f"You are a medical education assistant. "
-                f"Answer the following medical question clearly and accurately.\n"
-                f"<|im_end|>\n"
-                f"<|im_start|>user\n{row['question']}\n<|im_end|>\n"
-                f"<|im_start|>assistant\n{row['answer']}<|im_end|>"
-            )
-        }
-
     medical_samples = [format_medical_sample(row) for _, row in df_train.iterrows()]
     medical_hf = Dataset.from_list(medical_samples)
 
@@ -74,15 +85,6 @@ def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
         ultrachat_raw = load_dataset("HuggingFaceH4/ultrachat_200k", split="train_sft", streaming=False)
         replay_size = int(len(df_train) * 0.10)
         replay_raw = ultrachat_raw.shuffle(seed=42).select(range(min(replay_size, len(ultrachat_raw))))
-
-        def format_ultrachat(example):
-            messages = example.get("messages", [])
-            text = ""
-            for msg in messages[:4]:
-                role = msg.get("role", "user")
-                content = msg.get("content", "")[:300]
-                text += f"<|im_start|>{role}\n{content}\n<|im_end|>\n"
-            return {"text": text.strip()}
 
         replay_formatted = replay_raw.map(format_ultrachat, remove_columns=replay_raw.column_names)
         replay_formatted = replay_formatted.filter(lambda x: len(x["text"]) > 50)
