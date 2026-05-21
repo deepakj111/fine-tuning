@@ -1,4 +1,4 @@
-from train import format_medical_sample, format_ultrachat
+from utils.data_utils import format_medical_sample, format_ultrachat
 
 
 def test_format_medical_sample():
