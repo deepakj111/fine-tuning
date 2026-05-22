@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import time
 import warnings
@@ -12,6 +13,10 @@ from trl import SFTConfig, SFTTrainer
 from unsloth import FastLanguageModel
 
 from utils.data_utils import format_medical_sample, format_ultrachat
+
+# Configure structured logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -43,7 +48,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
-    print("📥 Loading Medical Meadow Flashcards dataset...")
+    logger.info("📥 Loading Medical Meadow Flashcards dataset...")
     raw_dataset = load_dataset("medalpaca/medical_meadow_medical_flashcards", split="train")
     df = raw_dataset.to_pandas()
     df = df.rename(columns={"input": "question", "output": "answer"})
@@ -59,7 +64,7 @@ def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
     medical_samples = [format_medical_sample(row) for _, row in df_train.iterrows()]
     medical_hf = Dataset.from_list(medical_samples)
 
-    print("📥 Loading general replay buffer (UltraChat-200k)...")
+    logger.info("📥 Loading general replay buffer (UltraChat-200k)...")
     try:
         ultrachat_raw = load_dataset("HuggingFaceH4/ultrachat_200k", split="train_sft", streaming=False)
         replay_size = int(len(df_train) * 0.10)
@@ -70,7 +75,7 @@ def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
 
         combined_dataset = concatenate_datasets([medical_hf, replay_formatted]).shuffle(seed=42)
     except Exception as e:
-        print(f"⚠️ Could not load replay buffer: {e}")
+        logger.warning(f"⚠️ Could not load replay buffer: {e}")
         combined_dataset = medical_hf.shuffle(seed=42)
 
     def tokenize_and_check(example):
@@ -80,7 +85,7 @@ def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
 
     train_dataset = combined_dataset.map(tokenize_and_check)
     train_dataset = train_dataset.filter(lambda x: x["token_count"] <= max_seq_len - 32)
-    print(f"✅ Final training set size: {len(train_dataset)}")
+    logger.info(f"✅ Final training set size: {len(train_dataset)}")
 
     return train_dataset
 
@@ -96,10 +101,10 @@ def main() -> None:
     if report_to == "wandb":
         wandb.login(key=os.environ.get("WANDB_API_KEY"))
         wandb.init(project="medical-qwen2.5-finetuning", config=vars(args))
-        print("✅ Weights & Biases tracking enabled")
+        logger.info("✅ Weights & Biases tracking enabled")
 
     # 2. Load Model & Tokenizer
-    print(f"🔄 Loading base model: {args.model_name}")
+    logger.info(f"🔄 Loading base model: {args.model_name}")
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=args.model_name,
         max_seq_length=args.max_seq_length,
@@ -114,7 +119,7 @@ def main() -> None:
     model.generation_config.max_length = None
 
     # 3. Configure QLoRA
-    print("⚙️ Configuring QLoRA adapter...")
+    logger.info("⚙️ Configuring QLoRA adapter...")
     model = FastLanguageModel.get_peft_model(
         model,
         r=args.lora_r,
@@ -161,15 +166,15 @@ def main() -> None:
     )
 
     # 6. Train
-    print("🚀 Starting training...")
+    logger.info("🚀 Starting training...")
     start_time = time.time()
     train_result = trainer.train()
     elapsed = time.time() - start_time
 
-    print(f"\n🎉 TRAINING COMPLETE! Time: {elapsed / 60:.1f} min. Final Loss: {train_result.training_loss:.4f}")
+    logger.info(f"🎉 TRAINING COMPLETE! Time: {elapsed / 60:.1f} min. Final Loss: {train_result.training_loss:.4f}")
 
     # 7. Save & Push
-    print(f"💾 Saving LoRA adapters to {args.output_dir}...")
+    logger.info(f"💾 Saving LoRA adapters to {args.output_dir}...")
     model.save_pretrained(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
 
@@ -179,11 +184,11 @@ def main() -> None:
             from huggingface_hub import login
 
             login(token=hf_token)
-            print(f"☁️ Pushing to Hugging Face Hub: {args.hub_repo_id}")
+            logger.info(f"☁️ Pushing to Hugging Face Hub: {args.hub_repo_id}")
             model.push_to_hub(args.hub_repo_id)
             tokenizer.push_to_hub(args.hub_repo_id)
         else:
-            print("⚠️ HF_TOKEN not found in environment. Skipping push to hub.")
+            logger.warning("⚠️ HF_TOKEN not found in environment. Skipping push to hub.")
 
     if report_to == "wandb":
         wandb.finish()

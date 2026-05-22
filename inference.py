@@ -1,11 +1,17 @@
+import logging
+
 import torch
 from unsloth import FastLanguageModel
+
+# Configure structured logging
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger(__name__)
 
 # 1. Load the fine-tuned model and tokenizer from HuggingFace Hub
 model_name = "deepakj111/medical-qwen2.5-0.5B-lora"
 max_seq_length = 1024
 
-print(f"Loading model: {model_name}...")
+logger.info(f"Loading model: {model_name}...")
 model, tokenizer = FastLanguageModel.from_pretrained(
     model_name=model_name,
     max_seq_length=max_seq_length,
@@ -52,16 +58,16 @@ if __name__ == "__main__":
         "What is the difference between ibuprofen and acetaminophen?",
     ]
 
-    print("\n" + "=" * 60)
-    print("Starting Medical Inference Examples")
-    print("=" * 60)
+    logger.info("\n" + "=" * 60)
+    logger.info("Starting Medical Inference Examples")
+    logger.info("=" * 60)
 
     for i, question in enumerate(example_questions, 1):
-        print(f"\n[Example {i}]")
-        print(f"Question: {question}")
-        print("-" * 60)
+        logger.info(f"\n[Example {i}]")
+        logger.info(f"Question: {question}")
+        logger.info("-" * 60)
 
         answer = generate_response(question)
 
-        print(f"Answer:   {answer}")
-        print("=" * 60)
+        logger.info(f"Answer:   {answer}")
+        logger.info("=" * 60)
