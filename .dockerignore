@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv
+venv/
+ENV/
+
+# Caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+unsloth_compiled_cache/
+
+# Model outputs (don't package weights in image, mount them or download them)
+medical_qwen_lora/
+*.safetensors
+*.bin
+
+# Environment variables
+.env
+
+# Jupyter Notebooks
+*.ipynb
+.ipynb_checkpoints
+
+# Misc
+.DS_Store
