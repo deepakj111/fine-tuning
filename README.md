@@ -4,12 +4,18 @@ This repository contains the fine-tuning pipeline, inference scripts, and associ
 
 ## 🚀 Architecture & Approach
 
-- **Base Model**: `Qwen/Qwen2.5-0.5B-Instruct`
+- **Base Model**: `unsloth/Qwen2.5-0.5B-Instruct`
 - **Techniques**:
   - **Unsloth**: For fast, memory-efficient Triton kernel patching.
-  - **QLoRA**: 4-bit quantization with Low-Rank Adaptation (Rank 16).
-  - **Catastrophic Forgetting Prevention**: Mixed 10% general instruction data (UltraChat-200k) into the training set (Replay Buffer/Rehearsal strategy) to ensure the model retains its general knowledge.
+  - **QLoRA**: 4-bit quantization with Low-Rank Adaptation (Rank 16, Alpha 32).
+  - **Catastrophic Forgetting Prevention**: Mixed 10% general instruction data (`HuggingFaceH4/ultrachat_200k`) into the training set (Replay Buffer/Rehearsal strategy) to ensure the model retains its general knowledge.
 - **Dataset**: `medalpaca/medical_meadow_medical_flashcards`
+
+## 📂 Codebase Overview
+
+- **`train.py`**: Production-grade training script using `unsloth`, `trl`, and `wandb` for logging. Includes CLI arguments for hyperparameter tuning.
+- **`inference.py`**: CLI-based inference script using Unsloth's optimized native 2x faster inference.
+- **`app.py`**: A Streamlit web application providing a chat UI for interacting with the fine-tuned model.
 
 ## 🔗 Hugging Face Model
 
@@ -62,23 +68,39 @@ cp .env.example .env
 - `HF_TOKEN`: Required to push models to Hugging Face.
 - `WANDB_API_KEY`: Required for Weights & Biases experiment tracking.
 
-4. **Production Training Script (Recommended)**:
-Run the production-grade training pipeline via terminal:
+## 🧑‍💻 Usage
+
+### 1. Training (`train.py`)
+Run the production-grade training pipeline via terminal. The script supports various command-line arguments:
+
 ```bash
-uv run python train.py --epochs 3 --batch_size 2
+uv run python train.py --epochs 3 --batch_size 2 --learning_rate 2e-4
 ```
 
-5. **Run the Jupyter Notebook Locally**:
-```bash
-uv run jupyter notebook
-```
+**Key Arguments:**
+- `--model_name`: Base model name (default: `unsloth/Qwen2.5-0.5B-Instruct`)
+- `--epochs`: Number of training epochs
+- `--batch_size`: Per-device batch size
+- `--lora_r` / `--lora_alpha`: LoRA hyperparameters
+- `--push_to_hub`: Flag to push the final model to Hugging Face Hub
+- `--disable_wandb`: Flag to disable Weights & Biases tracking
 
-6. **Run the Streamlit UI**:
+*Use `uv run python train.py --help` to see all available options.*
+
+### 2. Streamlit UI (`app.py`)
+Launch an interactive web interface to chat with the model:
 ```bash
 uv run streamlit run app.py
 ```
 
-7. **Run Terminal Inference**:
+### 3. Terminal Inference (`inference.py`)
+Run a quick local inference script with predefined examples:
 ```bash
 uv run python inference.py
+```
+
+### 4. Jupyter Notebook
+If you prefer exploring the process interactively:
+```bash
+uv run jupyter notebook
 ```
