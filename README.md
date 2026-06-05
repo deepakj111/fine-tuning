@@ -48,7 +48,7 @@ After fine-tuning, the model shows significant improvement in medical Q&A tasks:
 
 ## 🛠️ Local Setup & Inference
 
-This project uses [`uv`](https://github.com/astral-sh/uv) for fast, deterministic, production-grade dependency management.
+This project uses [`uv`](https://github.com/astral-sh/uv) for fast, deterministic, production-grade dependency management, and provides a `Makefile` for convenience.
 
 1. **Install `uv`**:
 ```bash
@@ -56,9 +56,11 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 2. **Sync the Environment**:
+You can use the provided Makefile to install dependencies (including dev tools):
 ```bash
-uv sync
+make install
 ```
+*(Alternatively, run `uv sync` manually.)*
 
 3. **Environment Variables**:
 Copy the example environment file and add your tokens:
@@ -71,9 +73,11 @@ cp .env.example .env
 ## 🧑‍💻 Usage
 
 ### 1. Training (`train.py`)
-Run the production-grade training pipeline via terminal. The script supports various command-line arguments:
+Run the production-grade training pipeline via terminal. The script features structured logging and supports various command-line arguments:
 
 ```bash
+make train
+# Or with custom arguments:
 uv run python train.py --epochs 3 --batch_size 2 --learning_rate 2e-4
 ```
 
@@ -90,7 +94,7 @@ uv run python train.py --epochs 3 --batch_size 2 --learning_rate 2e-4
 ### 2. Streamlit UI (`app.py`)
 Launch an interactive web interface to chat with the model:
 ```bash
-uv run streamlit run app.py
+make app
 ```
 
 ### 3. Terminal Inference (`inference.py`)
@@ -104,3 +108,32 @@ If you prefer exploring the process interactively:
 ```bash
 uv run jupyter notebook
 ```
+
+## 🐳 Docker Deployment
+
+The Streamlit application is containerized using a multi-stage Dockerfile powered by `uv` for minimal image size.
+
+```bash
+# Build the image
+docker build -t medical-qwen-app .
+
+# Run the container
+docker run -p 8501:8501 --env-file .env medical-qwen-app
+```
+
+## 🧪 Testing & Code Quality
+
+The project includes a comprehensive test suite and code formatting guidelines enforced via GitHub Actions.
+
+- **Run tests**:
+  ```bash
+  make test
+  ```
+- **Lint the code**:
+  ```bash
+  make lint
+  ```
+- **Format the code**:
+  ```bash
+  make format
+  ```
