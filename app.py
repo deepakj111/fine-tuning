@@ -58,15 +58,17 @@ if prompt := st.chat_input("Ask a medical question... (e.g., What are the sympto
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
 
-        # Build prompt using ChatML format (matching inference.py)
-        formatted_prompt = (
-            f"<|im_start|>system\nYou are a helpful medical assistant.\n<|im_end|>\n"
-            f"<|im_start|>user\n{prompt}\n<|im_end|>\n"
-            f"<|im_start|>assistant\n"
-        )
+        # Prepare messages for ChatML template, including system prompt and full history
+        chat_messages = [{"role": "system", "content": "You are a helpful medical assistant."}]
+        for msg in st.session_state.messages:
+            chat_messages.append({"role": msg["role"], "content": msg["content"]})
+
+        formatted_prompt = tokenizer.apply_chat_template(chat_messages, tokenize=False, add_generation_prompt=True)
 
         try:
-            inputs = tokenizer(formatted_prompt, return_tensors="pt", truncation=True, max_length=512).to("cuda")
+            # Truncate from left to forget oldest messages rather than the latest prompt
+            tokenizer.truncation_side = "left"
+            inputs = tokenizer(formatted_prompt, return_tensors="pt", truncation=True, max_length=768).to("cuda")
 
             with st.spinner("Generating answer..."):
                 with torch.no_grad():
