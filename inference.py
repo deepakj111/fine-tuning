@@ -25,13 +25,13 @@ FastLanguageModel.for_inference(model)
 
 # 3. Define the prompt format
 def generate_response(question: str) -> str:
-    # Using ChatML format which Qwen2.5-Instruct uses
-    prompt = (
-        f"<|im_start|>system\nYou are a helpful medical assistant.\n<|im_end|>\n"
-        f"<|im_start|>user\n{question}\n<|im_end|>\n"
-        f"<|im_start|>assistant\n"
-    )
+    # Use tokenizer.apply_chat_template for standard prompt formatting
+    messages = [
+        {"role": "system", "content": "You are a helpful medical assistant."},
+        {"role": "user", "content": question},
+    ]
 
+    prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512).to("cuda")
 
     with torch.no_grad():
