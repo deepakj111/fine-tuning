@@ -207,7 +207,7 @@ def main():
         plot_metrics_comparison(results, args.output_dir)
         plot_catastrophic_forgetting(results, args.output_dir)
     else:
-        print(f"⚠️  No training_results.json found at {res_path}. Run evaluate.py first.")
+        print(f"⚠️  No training_results.json found at {res_path}. Run eval_model.py first.")
 
     plot_training_loss(args.model_dir, args.output_dir)
 

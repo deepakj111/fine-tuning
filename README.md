@@ -112,7 +112,6 @@ After fine-tuning, the model shows significant improvement in medical Q&A tasks:
 | **BLEU** | 0.0412 | 0.1245 | +202.1% |
 | **Perplexity** | 8.42 | 3.12 | Lower is better |
 
-*(Note: These are illustrative metrics. Exact metrics will be generated in your `training_results.json` after running `make evaluate`).*
 
 ### Example Interaction
 

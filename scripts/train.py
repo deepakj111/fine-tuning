@@ -1,3 +1,4 @@
+import unsloth  # noqa: F401 — must be first to patch TRL/transformers before they are imported
 import argparse
 import json
 import logging
@@ -140,7 +141,7 @@ def main() -> None:
         optim="adamw_8bit",
         learning_rate=args.learning_rate,
         lr_scheduler_type="cosine",
-        warmup_ratio=0.05,
+        warmup_steps=50,
         weight_decay=0.01,
         fp16=not torch.cuda.is_bf16_supported(),
         bf16=torch.cuda.is_bf16_supported(),
@@ -155,6 +156,7 @@ def main() -> None:
         report_to="none",
         max_length=args.max_seq_length,
         dataset_text_field="text",
+        eos_token=None,  # Explicitly None — overrides Unsloth's patched default of "<EOS_TOKEN>"
         packing=False,
     )
 

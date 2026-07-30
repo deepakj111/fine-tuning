@@ -24,7 +24,7 @@ train: ## Run the training script
 	PYTHONPATH=. uv run python scripts/train.py
 
 evaluate: ## Run the evaluation script
-	PYTHONPATH=. uv run python scripts/evaluate.py
+	PYTHONPATH=. uv run python scripts/eval_model.py
 
 upload: ## Upload model to Hugging Face
 	PYTHONPATH=. uv run python scripts/upload_hf.py
