@@ -80,7 +80,7 @@ def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
         example["token_count"] = len(tokens["input_ids"])
         return example
 
-    train_dataset = combined_dataset.map(tokenize_and_check)
+    train_dataset = combined_dataset.map(tokenize_and_check, num_proc=2, desc="Tokenizing")
     train_dataset = train_dataset.filter(lambda x: x["token_count"] <= max_seq_len - 32)
     logger.info(f"✅ Final training set size: {len(train_dataset)}")
 
@@ -126,7 +126,14 @@ def main() -> None:
         bias="none",
         use_gradient_checkpointing="unsloth",
         random_state=42,
+        use_rslora=False,
+        loftq_config=None,
     )
+
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    trainable_pct = (trainable_params / total_params) * 100
+    logger.info(f"📊 Params: Total {total_params:,}, Trainable {trainable_params:,} ({trainable_pct:.2f}%)")
 
     # 4. Prepare Dataset
     train_dataset = prepare_data(tokenizer, args.max_seq_length)
@@ -149,6 +156,10 @@ def main() -> None:
         save_steps=100,
         save_total_limit=2,
         seed=42,
+        eval_strategy="no",
+        max_steps=-1,
+        dataloader_num_workers=0,
+        dataset_num_proc=2,
         report_to=report_to,
         max_seq_length=args.max_seq_length,
         dataset_text_field="text",
@@ -164,9 +175,17 @@ def main() -> None:
 
     # 6. Train
     logger.info("🚀 Starting training...")
+    if torch.cuda.is_available():
+        free, total = torch.cuda.mem_get_info()
+        logger.info(f"🔋 Memory BEFORE training: Used {(total - free) / 1e9:.2f}GB / Total {total / 1e9:.2f}GB")
+
     start_time = time.time()
     train_result = trainer.train()
     elapsed = time.time() - start_time
+
+    if torch.cuda.is_available():
+        free, total = torch.cuda.mem_get_info()
+        logger.info(f"🔋 Memory AFTER training: Used {(total - free) / 1e9:.2f}GB / Total {total / 1e9:.2f}GB")
 
     logger.info(f"🎉 TRAINING COMPLETE! Time: {elapsed / 60:.1f} min. Final Loss: {train_result.training_loss:.4f}")
 
