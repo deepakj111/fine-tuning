@@ -21,13 +21,13 @@ format: ## Format code
 	uv run ruff check --fix .
 
 train: ## Run the training script
-	uv run python train.py
+	PYTHONPATH=. uv run python scripts/train.py
 
 evaluate: ## Run the evaluation script
-	uv run python evaluate.py
+	PYTHONPATH=. uv run python scripts/evaluate.py
 
 upload: ## Upload model to Hugging Face
-	uv run python upload_hf.py
+	PYTHONPATH=. uv run python scripts/upload_hf.py
 
 app: ## Run the Streamlit app
 	uv run streamlit run app.py

@@ -3,14 +3,13 @@ import json
 import logging
 import os
 
+import evaluate
 import nltk
 import numpy as np
 import torch
 from datasets import load_dataset
 from tqdm.auto import tqdm
 from unsloth import FastLanguageModel
-
-import evaluate
 
 # Ensure required NLTK data is downloaded for BLEU score
 nltk.download("punkt", quiet=True)

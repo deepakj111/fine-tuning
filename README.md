@@ -13,10 +13,10 @@ This repository contains the fine-tuning pipeline, inference scripts, and associ
 
 ## 📂 Codebase Overview
 
-- **`train.py`**: Production-grade training script using `unsloth`, `trl`, and `wandb` for logging. Includes CLI arguments for hyperparameter tuning.
-- **`evaluate.py`**: Local evaluation script computing ROUGE, BLEU, and Perplexity on the validation set.
-- **`upload_hf.py`**: Script for dynamically generating a Model Card and pushing the trained model to Hugging Face Hub.
-- **`inference.py`**: CLI-based inference script using Unsloth's optimized native 2x faster inference.
+- **`scripts/train.py`**: Production-grade training script using `unsloth`, `trl`, and `wandb` for logging. Includes CLI arguments for hyperparameter tuning.
+- **`scripts/evaluate.py`**: Local evaluation script computing ROUGE, BLEU, and Perplexity on the validation set.
+- **`scripts/upload_hf.py`**: Script for dynamically generating a Model Card and pushing the trained model to Hugging Face Hub.
+- **`scripts/inference.py`**: CLI-based inference script using Unsloth's optimized native 2x faster inference.
 - **`app.py`**: A Streamlit web application providing a chat UI for interacting with the fine-tuned model.
 
 ## 🔗 Hugging Face Model
@@ -74,18 +74,18 @@ cp .env.example .env
 
 ## 🧑‍💻 Usage
 
-### 1. Training (`train.py`)
+### 1. Training (`scripts/train.py`)
 Run the production-grade training pipeline via terminal. The script features structured logging and supports various command-line arguments:
 
 ```bash
 make train
 # Or with custom arguments:
-uv run python train.py --epochs 3 --batch_size 2 --learning_rate 2e-4
+PYTHONPATH=. uv run python scripts/train.py --epochs 3 --batch_size 2 --learning_rate 2e-4
 ```
 
 #### Train with Disable wandb
 ```
-uv run python train.py --disable_wandb
+PYTHONPATH=. uv run python scripts/train.py --disable_wandb
 ```
 
 **Key Arguments:**
@@ -95,22 +95,22 @@ uv run python train.py --disable_wandb
 - `--lora_r` / `--lora_alpha`: LoRA hyperparameters
 - `--disable_wandb`: Flag to disable Weights & Biases tracking
 
-*Use `uv run python train.py --help` to see all available options.*
+*Use `PYTHONPATH=. uv run python scripts/train.py --help` to see all available options.*
 
-### 2. Evaluation (`evaluate.py`)
+### 2. Evaluation (`scripts/evaluate.py`)
 Run the evaluation script to compute metrics for both the base and fine-tuned models:
 ```bash
 make evaluate
 # Or with custom arguments:
-uv run python evaluate.py --num_samples 150
+PYTHONPATH=. uv run python scripts/evaluate.py --num_samples 150
 ```
 
-### 3. Uploading to Hugging Face (`upload_hf.py`)
+### 3. Uploading to Hugging Face (`scripts/upload_hf.py`)
 Upload your trained model and dynamically generate a model card:
 ```bash
 make upload
 # Or with custom arguments:
-uv run python upload_hf.py --hub_repo_id your_username/medical-qwen2.5-0.5B-lora
+PYTHONPATH=. uv run python scripts/upload_hf.py --hub_repo_id your_username/medical-qwen2.5-0.5B-lora
 ```
 
 ### 4. Streamlit UI (`app.py`)
@@ -119,10 +119,10 @@ Launch an interactive web interface to chat with the model:
 make app
 ```
 
-### 5. Terminal Inference (`inference.py`)
+### 5. Terminal Inference (`scripts/inference.py`)
 Run a quick local inference script with predefined examples:
 ```bash
-uv run python inference.py
+PYTHONPATH=. uv run python scripts/inference.py
 ```
 
 ### 6. Jupyter Notebook
