@@ -14,8 +14,10 @@ This repository contains the fine-tuning pipeline, inference scripts, and associ
 ## 📂 Codebase Overview
 
 - **`scripts/train.py`**: Production-grade training script using `unsloth`, `trl`, and `wandb` for logging. Includes CLI arguments for hyperparameter tuning.
-- **`scripts/evaluate.py`**: Local evaluation script computing ROUGE, BLEU, and Perplexity on the validation set.
+- **`scripts/evaluate.py`**: Local evaluation script computing ROUGE, BLEU, Perplexity, and **Catastrophic Forgetting** checks on the validation set.
 - **`scripts/upload_hf.py`**: Script for dynamically generating a Model Card and pushing the trained model to Hugging Face Hub.
+- **`scripts/visualize_data.py`**: Exploratory Data Analysis (EDA) tool mapping Q/A distributions and Model Architecture breakdown.
+- **`scripts/visualize_results.py`**: Post-training visualization pipeline rendering metrics and loss curves into interactive HTML plots.
 - **`scripts/inference.py`**: CLI-based inference script using Unsloth's optimized native 2x faster inference.
 - **`app.py`**: A Streamlit web application providing a chat UI for interacting with the fine-tuned model.
 
@@ -98,14 +100,21 @@ PYTHONPATH=. uv run python scripts/train.py --disable_wandb
 *Use `PYTHONPATH=. uv run python scripts/train.py --help` to see all available options.*
 
 ### 2. Evaluation (`scripts/evaluate.py`)
-Run the evaluation script to compute metrics for both the base and fine-tuned models:
+Run the evaluation script to compute metrics for both the base and fine-tuned models, and check for catastrophic forgetting:
 ```bash
 make evaluate
 # Or with custom arguments:
 PYTHONPATH=. uv run python scripts/evaluate.py --num_samples 150
 ```
 
-### 3. Uploading to Hugging Face (`scripts/upload_hf.py`)
+### 3. Visualizations (`scripts/visualize_*.py`)
+Generate interactive Plotly HTML charts for your dataset, architecture, and evaluation metrics. They will be saved to the `./plots` directory.
+```bash
+make visualize_data
+make visualize_results
+```
+
+### 4. Uploading to Hugging Face (`scripts/upload_hf.py`)
 Upload your trained model and dynamically generate a model card:
 ```bash
 make upload
@@ -113,19 +122,19 @@ make upload
 PYTHONPATH=. uv run python scripts/upload_hf.py --hub_repo_id your_username/medical-qwen2.5-0.5B-lora
 ```
 
-### 4. Streamlit UI (`app.py`)
+### 5. Streamlit UI (`app.py`)
 Launch an interactive web interface to chat with the model:
 ```bash
 make app
 ```
 
-### 5. Terminal Inference (`scripts/inference.py`)
+### 6. Terminal Inference (`scripts/inference.py`)
 Run a quick local inference script with predefined examples:
 ```bash
 PYTHONPATH=. uv run python scripts/inference.py
 ```
 
-### 6. Jupyter Notebook
+### 7. Jupyter Notebook
 If you prefer exploring the process interactively:
 ```bash
 uv run jupyter notebook

@@ -35,7 +35,7 @@ target-version = "py311"
 exclude = ["*.ipynb"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "N"]
+select = ["E", "F", "UP", "N"]
 ignore = ["E501"]
 
 [tool.ruff.format]
@@ -43,6 +43,9 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.ruff.lint.isort]
+known-first-party = ["utils", "scripts"]
 
 [dependency-groups]
 dev = [

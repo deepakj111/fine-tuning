@@ -29,6 +29,12 @@ evaluate: ## Run the evaluation script
 upload: ## Upload model to Hugging Face
 	PYTHONPATH=. uv run python scripts/upload_hf.py
 
+visualize_data: ## Run pre-training data visualizations
+	PYTHONPATH=. uv run python scripts/visualize_data.py
+
+visualize_results: ## Run post-training result visualizations
+	PYTHONPATH=. uv run python scripts/visualize_results.py
+
 app: ## Run the Streamlit app
 	uv run streamlit run app.py
 

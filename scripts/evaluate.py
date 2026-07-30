@@ -28,6 +28,69 @@ def parse_args():
     return parser.parse_args()
 
 
+GENERAL_TESTS = [
+    {
+        "task": "General Knowledge",
+        "question": "What is the capital of France and what is it famous for?",
+        "ref_keywords": ["paris", "eiffel", "louvre", "france", "city"],
+    },
+    {
+        "task": "Simple Math Reasoning",
+        "question": "If a train travels at 60 km/h and needs to cover 180 km, how long will it take?",
+        "ref_keywords": ["3", "three", "hours", "hour"],
+    },
+    {
+        "task": "Common Sense",
+        "question": "Why do we need to sleep every night? Give three reasons.",
+        "ref_keywords": ["rest", "brain", "memory", "health", "body", "energy"],
+    },
+    {
+        "task": "Language Understanding",
+        "question": "Explain the difference between a metaphor and a simile with examples.",
+        "ref_keywords": ["like", "as", "comparison", "directly", "example"],
+    },
+]
+
+
+def keyword_score(text: str, keywords: list) -> float:
+    text_lower = text.lower()
+    hits = sum(1 for kw in keywords if kw in text_lower)
+    return hits / len(keywords)
+
+
+def check_catastrophic_forgetting(model, tokenizer):
+    logger.info("🛡️  Running Catastrophic Forgetting Check on Fine-Tuned Model...")
+    results = []
+    for test in GENERAL_TESTS:
+        prompt = (
+            f"<|im_start|>system\nYou are a helpful assistant.\n<|im_end|>\n"
+            f"<|im_start|>user\n{test['question']}\n<|im_end|>\n"
+            f"<|im_start|>assistant\n"
+        )
+        inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=512).to("cuda")
+        with torch.no_grad():
+            out = model.generate(
+                **inputs,
+                max_new_tokens=150,
+                do_sample=False,
+                repetition_penalty=1.15,
+                pad_token_id=tokenizer.eos_token_id,
+            )
+        response = tokenizer.decode(out[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True).strip()
+        score = keyword_score(response, test["ref_keywords"])
+        results.append({"task": test["task"], "score": round(score, 4)})
+        logger.info(f"Task: {test['task']} | Score: {score:.2f}")
+
+    avg_retention = sum(r["score"] for r in results) / len(results)
+    logger.info(f"Average General Task Retention Score: {avg_retention:.2f}")
+    if avg_retention >= 0.3:
+        logger.info("✅ PASS — Replay buffer strategy prevented catastrophic forgetting.")
+    else:
+        logger.warning("⚠️  WARNING — Model shows signs of catastrophic forgetting.")
+
+    return results
+
+
 def build_prompt(question: str, include_answer: bool = False, answer: str = "") -> str:
     prompt = (
         f"<|im_start|>system\n"
@@ -147,11 +210,15 @@ def main():
     logger.info(f"📊 Evaluating Fine-Tuned Model on {len(eval_df)} samples...")
     ft_scores = evaluate_model(model_ft, tokenizer_ft, eval_df, args.max_seq_length, args.num_samples, "Fine-Tuned")
 
+    # Catastrophic forgetting check
+    forgetting_results = check_catastrophic_forgetting(model_ft, tokenizer_ft)
+
     results = {
         "dataset": "medalpaca/medical_meadow_medical_flashcards",
         "eval_samples": len(eval_df),
         "baseline_scores": {k: round(float(v), 4) for k, v in base_scores.items()},
         "finetuned_scores": {k: round(float(v), 4) for k, v in ft_scores.items()},
+        "forgetting_checks": forgetting_results,
     }
 
     os.makedirs(args.adapter_dir, exist_ok=True)

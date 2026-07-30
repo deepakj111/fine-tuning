@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import os
 import time
@@ -173,6 +174,13 @@ def main() -> None:
     logger.info(f"💾 Saving LoRA adapters to {args.output_dir}...")
     model.save_pretrained(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
+
+    # Save training logs for visualization
+    log_history = trainer.state.log_history
+    train_logs = [x for x in log_history if "loss" in x and "eval_loss" not in x]
+    os.makedirs(args.output_dir, exist_ok=True)
+    with open(os.path.join(args.output_dir, "training_logs.json"), "w") as f:
+        json.dump(train_logs, f, indent=2)
 
     if report_to == "wandb":
         wandb.finish()
