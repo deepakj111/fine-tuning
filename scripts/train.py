@@ -12,7 +12,6 @@ from dotenv import load_dotenv
 from trl import SFTConfig, SFTTrainer
 from unsloth import FastLanguageModel
 
-import wandb
 from utils.data_utils import format_medical_sample, format_ultrachat
 
 # Configure structured logging
@@ -40,7 +39,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output_dir", type=str, default="./medical_qwen_lora", help="Output directory for saved model"
     )
-    parser.add_argument("--disable_wandb", action="store_true", help="Disable W&B tracking")
     return parser.parse_args()
 
 
@@ -90,15 +88,9 @@ def prepare_data(tokenizer: Any, max_seq_len: int) -> Dataset:
 def main() -> None:
     args = parse_args()
 
-    # 1. Check GPU & Setup Tracking
+    # 1. Check GPU
     if not torch.cuda.is_available():
         raise RuntimeError("GPU is required for training, but none was found.")
-
-    report_to = "none" if args.disable_wandb else "wandb"
-    if report_to == "wandb":
-        wandb.login(key=os.environ.get("WANDB_API_KEY"))
-        wandb.init(project="medical-qwen2.5-finetuning", config=vars(args))
-        logger.info("✅ Weights & Biases tracking enabled")
 
     # 2. Load Model & Tokenizer
     logger.info(f"🔄 Loading base model: {args.model_name}")
@@ -160,7 +152,7 @@ def main() -> None:
         max_steps=-1,
         dataloader_num_workers=0,
         dataset_num_proc=2,
-        report_to=report_to,
+        report_to="none",
         max_seq_length=args.max_seq_length,
         dataset_text_field="text",
         packing=False,
@@ -200,9 +192,6 @@ def main() -> None:
     os.makedirs(args.output_dir, exist_ok=True)
     with open(os.path.join(args.output_dir, "training_logs.json"), "w") as f:
         json.dump(train_logs, f, indent=2)
-
-    if report_to == "wandb":
-        wandb.finish()
 
 
 if __name__ == "__main__":
