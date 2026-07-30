@@ -43,3 +43,6 @@ clean: ## Clean up cache directories and artifacts
 	rm -rf .pytest_cache/
 	rm -rf __pycache__/
 	find . -type d -name __pycache__ -exec rm -rf {} +
+
+test-inference: ## Run CLI inference tests
+	PYTHONPATH=. uv run python scripts/inference.py
