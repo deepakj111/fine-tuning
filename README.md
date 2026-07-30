@@ -81,6 +81,11 @@ make train
 uv run python train.py --epochs 3 --batch_size 2 --learning_rate 2e-4
 ```
 
+#### Train with Disable wandb
+```
+uv run python train.py --disable_wandb
+```
+
 **Key Arguments:**
 - `--model_name`: Base model name (default: `unsloth/Qwen2.5-0.5B-Instruct`)
 - `--epochs`: Number of training epochs

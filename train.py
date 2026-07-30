@@ -6,12 +6,12 @@ import warnings
 from typing import Any
 
 import torch
-import wandb
 from datasets import Dataset, concatenate_datasets, load_dataset
 from dotenv import load_dotenv
 from trl import SFTConfig, SFTTrainer
 from unsloth import FastLanguageModel
 
+import wandb
 from utils.data_utils import format_medical_sample, format_ultrachat
 
 # Configure structured logging
@@ -38,10 +38,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lora_alpha", type=int, default=32, help="LoRA Alpha")
     parser.add_argument(
         "--output_dir", type=str, default="./medical_qwen_lora", help="Output directory for saved model"
-    )
-    parser.add_argument("--push_to_hub", action="store_true", help="Push final model to Hugging Face Hub")
-    parser.add_argument(
-        "--hub_repo_id", type=str, default="your_username/medical-qwen2.5-0.5B-lora", help="HF Hub Repo ID to push to"
     )
     parser.add_argument("--disable_wandb", action="store_true", help="Disable W&B tracking")
     return parser.parse_args()
@@ -173,22 +169,10 @@ def main() -> None:
 
     logger.info(f"🎉 TRAINING COMPLETE! Time: {elapsed / 60:.1f} min. Final Loss: {train_result.training_loss:.4f}")
 
-    # 7. Save & Push
+    # 7. Save
     logger.info(f"💾 Saving LoRA adapters to {args.output_dir}...")
     model.save_pretrained(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
-
-    if args.push_to_hub:
-        hf_token = os.environ.get("HF_TOKEN")
-        if hf_token:
-            from huggingface_hub import login
-
-            login(token=hf_token)
-            logger.info(f"☁️ Pushing to Hugging Face Hub: {args.hub_repo_id}")
-            model.push_to_hub(args.hub_repo_id)
-            tokenizer.push_to_hub(args.hub_repo_id)
-        else:
-            logger.warning("⚠️ HF_TOKEN not found in environment. Skipping push to hub.")
 
     if report_to == "wandb":
         wandb.finish()
