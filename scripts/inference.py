@@ -38,6 +38,7 @@ def generate_response(question: str) -> str:
         outputs = model.generate(
             **inputs,
             max_new_tokens=200,
+            max_length=None,
             do_sample=True,  # Set to True for more creative/diverse answers, False for greedy
             temperature=0.3,  # Low temperature for more factual responses
             repetition_penalty=1.15,
