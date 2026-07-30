@@ -153,7 +153,7 @@ def main() -> None:
         dataloader_num_workers=0,
         dataset_num_proc=2,
         report_to="none",
-        max_seq_length=args.max_seq_length,
+        max_length=args.max_seq_length,
         dataset_text_field="text",
         packing=False,
     )
