@@ -14,6 +14,8 @@ This repository contains the fine-tuning pipeline, inference scripts, and associ
 ## 📂 Codebase Overview
 
 - **`train.py`**: Production-grade training script using `unsloth`, `trl`, and `wandb` for logging. Includes CLI arguments for hyperparameter tuning.
+- **`evaluate.py`**: Local evaluation script computing ROUGE, BLEU, and Perplexity on the validation set.
+- **`upload_hf.py`**: Script for dynamically generating a Model Card and pushing the trained model to Hugging Face Hub.
 - **`inference.py`**: CLI-based inference script using Unsloth's optimized native 2x faster inference.
 - **`app.py`**: A Streamlit web application providing a chat UI for interacting with the fine-tuned model.
 
@@ -91,24 +93,39 @@ uv run python train.py --disable_wandb
 - `--epochs`: Number of training epochs
 - `--batch_size`: Per-device batch size
 - `--lora_r` / `--lora_alpha`: LoRA hyperparameters
-- `--push_to_hub`: Flag to push the final model to Hugging Face Hub
 - `--disable_wandb`: Flag to disable Weights & Biases tracking
 
 *Use `uv run python train.py --help` to see all available options.*
 
-### 2. Streamlit UI (`app.py`)
+### 2. Evaluation (`evaluate.py`)
+Run the evaluation script to compute metrics for both the base and fine-tuned models:
+```bash
+make evaluate
+# Or with custom arguments:
+uv run python evaluate.py --num_samples 150
+```
+
+### 3. Uploading to Hugging Face (`upload_hf.py`)
+Upload your trained model and dynamically generate a model card:
+```bash
+make upload
+# Or with custom arguments:
+uv run python upload_hf.py --hub_repo_id your_username/medical-qwen2.5-0.5B-lora
+```
+
+### 4. Streamlit UI (`app.py`)
 Launch an interactive web interface to chat with the model:
 ```bash
 make app
 ```
 
-### 3. Terminal Inference (`inference.py`)
+### 5. Terminal Inference (`inference.py`)
 Run a quick local inference script with predefined examples:
 ```bash
 uv run python inference.py
 ```
 
-### 4. Jupyter Notebook
+### 6. Jupyter Notebook
 If you prefer exploring the process interactively:
 ```bash
 uv run jupyter notebook
