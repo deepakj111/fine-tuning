@@ -15,12 +15,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Upload Model to Hugging Face Hub")
     parser.add_argument("--model_dir", type=str, default="./medical_qwen_lora", help="Path to saved LoRA adapters")
     parser.add_argument(
-        "--hub_repo_id", type=str, default="your_username/medical-qwen2.5-0.5B-lora", help="HF Hub Repo ID to push to"
+        "--hub_repo_id", type=str, default="deepakj111/medical-qwen2.5-0.5B-lora", help="HF Hub Repo ID to push to"
     )
     return parser.parse_args()
 
 
-def generate_model_card(repo_id: str, results: dict) -> str:
+def generate_model_card(repo_id: str, results: dict, plots: list = None) -> str:
     base = results.get("baseline_scores", {})
     ft = results.get("finetuned_scores", {})
 
@@ -54,7 +54,16 @@ The model was evaluated on {results.get("eval_samples", "unknown")} validation s
 | **Perplexity** | {base.get("perplexity", 0):.2f} | {ft.get("perplexity", 0):.2f} | {ft.get("perplexity", 0) - base.get("perplexity", 0):.2f} |
 
 *(Note: Lower perplexity is better)*
+"""
+    if plots:
+        card += "\n## Training and Evaluation Plots\n\n"
+        for plot in plots:
+            name = plot.replace(".jpg", "").replace("_", " ").title()
+            jpg_url = f"https://huggingface.co/{repo_id}/resolve/main/plots/{plot}"
+            card += f"### {name}\n"
+            card += f"![{name}]({jpg_url})\n\n"
 
+    card += f"""
 ## Usage
 
 ```python
@@ -90,8 +99,32 @@ def main():
     else:
         logger.warning(f"No training_results.json found at {results_path}. Model card will have empty metrics.")
 
+    # Copy plots to model_dir so they get uploaded
+    import shutil
+
+    plots_src = "plots"
+    plots_dest = os.path.join(args.model_dir, "plots")
+    plots_list = []
+    if os.path.exists(plots_src):
+        shutil.copytree(plots_src, plots_dest, dirs_exist_ok=True)
+        plots_list = [f for f in os.listdir(plots_src) if f.endswith(".jpg")]
+        plot_order = [
+            "dataset_eda",
+            "model_architecture",
+            "training_loss",
+            "metrics_comparison_bar",
+            "metrics_radar",
+            "improvement_percentage",
+            "perplexity_comparison",
+            "catastrophic_forgetting",
+        ]
+        plots_list.sort(
+            key=lambda x: plot_order.index(x.replace(".jpg", "")) if x.replace(".jpg", "") in plot_order else 99
+        )
+        logger.info(f"Copied {len(plots_list)} JPG plots to {plots_dest}")
+
     # Generate and write README.md (Model Card)
-    model_card = generate_model_card(args.hub_repo_id, results)
+    model_card = generate_model_card(args.hub_repo_id, results, plots_list)
     readme_path = os.path.join(args.model_dir, "README.md")
     with open(readme_path, "w") as f:
         f.write(model_card)

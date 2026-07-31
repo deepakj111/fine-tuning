@@ -76,8 +76,8 @@ make visualize_data
 make visualize_results
 ```
 **What this does:**
-- `visualize_data`: Generates interactive HTML Plotly charts in `./plots/` showing Q/A length distributions and LoRA parameter pie charts.
-- `visualize_results`: Reads your local JSON logs and generates beautiful Radar charts, Grouped Bar charts, and Loss Curves comparing the Before & After metrics.
+- `visualize_data`: Generates JPG Plotly charts in `./plots/` showing Q/A length distributions and LoRA parameter pie charts.
+- `visualize_results`: Reads your local JSON logs and generates beautiful JPG Radar charts, Grouped Bar charts, and Loss Curves comparing the Before & After metrics.
 
 ### Step 5: Test the Model (Inference)
 There are two ways to talk to your model:
@@ -104,13 +104,15 @@ Pushes your LoRA adapters to the Hugging Face Hub and dynamically generates a ri
 
 After fine-tuning, the model shows significant improvement in medical Q&A tasks:
 
+<!-- RESULTS_TABLE_START -->
 | Metric | Base Model | Fine-Tuned | % Change |
 |--------|------------|------------|----------|
-| **ROUGE-1** | 0.2031 | 0.3541 | +74.3% |
-| **ROUGE-2** | 0.0521 | 0.1632 | +213.2% |
-| **ROUGE-L** | 0.1741 | 0.3121 | +79.3% |
-| **BLEU** | 0.0412 | 0.1245 | +202.1% |
-| **Perplexity** | 8.42 | 3.12 | Lower is better |
+| **ROUGE-1** | 0.2933 | 0.3164 | 7.9% |
+| **ROUGE-2** | 0.1165 | 0.1575 | 35.2% |
+| **ROUGE-L** | 0.2068 | 0.2349 | 13.6% |
+| **BLEU** | 0.0619 | 0.0979 | 58.2% |
+| **Perplexity** | 50.43 | 2.92 | -47.51 |
+<!-- RESULTS_TABLE_END -->
 
 
 ### Example Interaction
@@ -122,6 +124,36 @@ After fine-tuning, the model shows significant improvement in medical Q&A tasks:
 
 **Fine-Tuned Model Output**:
 > The classic symptoms of Type 2 Diabetes include polyuria (frequent urination), polydipsia (increased thirst), polyphagia (increased hunger), unexplained weight loss, fatigue, and blurred vision.
+
+---
+
+## 📈 Training and Evaluation Plots
+
+These plots are automatically updated when you run the visualization scripts.
+
+### 1. Dataset EDA
+![Dataset EDA](./plots/dataset_eda.jpg)
+
+### 2. Model Architecture
+![Model Architecture](./plots/model_architecture.jpg)
+
+### 3. Training Loss
+![Training Loss](./plots/training_loss.jpg)
+
+### 4. Metrics Comparison
+![Metrics Comparison Bar](./plots/metrics_comparison_bar.jpg)
+
+### 5. Metrics Radar
+![Metrics Radar](./plots/metrics_radar.jpg)
+
+### 6. Improvement Percentage
+![Improvement Percentage](./plots/improvement_percentage.jpg)
+
+### 7. Perplexity Comparison
+![Perplexity Comparison](./plots/perplexity_comparison.jpg)
+
+### 8. Catastrophic Forgetting
+![Catastrophic Forgetting](./plots/catastrophic_forgetting.jpg)
 
 ---
 

@@ -26,6 +26,7 @@ dependencies = [
     "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git",
     "xformers",
     "ruff>=0.4.0",
+    "kaleido==0.2.1",
 ]
 
 [tool.ruff]

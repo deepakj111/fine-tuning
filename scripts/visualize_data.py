@@ -118,8 +118,8 @@ def plot_dataset_eda(output_dir: str):
         plot_bgcolor="#FAFAFA",
     )
 
-    out_path = os.path.join(output_dir, "dataset_eda.html")
-    fig.write_html(out_path)
+    out_path = os.path.join(output_dir, "dataset_eda.jpg")
+    fig.write_image(out_path)
     print(f"✅ Dataset EDA plot saved to {out_path}")
 
 
@@ -162,8 +162,8 @@ def plot_architecture(model_name: str, output_dir: str):
         plot_bgcolor="white",
     )
 
-    out_path = os.path.join(output_dir, "model_architecture.html")
-    fig.write_html(out_path)
+    out_path = os.path.join(output_dir, "model_architecture.jpg")
+    fig.write_image(out_path)
     print(f"✅ Architecture plot saved to {out_path}")
 
 

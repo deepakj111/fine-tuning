@@ -1,7 +1,7 @@
 import argparse
 import json
 import os
-
+import re
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -55,7 +55,7 @@ def plot_metrics_comparison(results: dict, output_dir: str):
         plot_bgcolor="#FAFAFA",
         height=480,
     )
-    fig1.write_html(os.path.join(output_dir, "metrics_comparison_bar.html"))
+    fig1.write_image(os.path.join(output_dir, "metrics_comparison_bar.jpg"))
 
     # 2. Radar Chart
     theta = metrics_labels + [metrics_labels[0]]
@@ -71,7 +71,7 @@ def plot_metrics_comparison(results: dict, output_dir: str):
         height=500,
         paper_bgcolor="white",
     )
-    fig2.write_html(os.path.join(output_dir, "metrics_radar.html"))
+    fig2.write_image(os.path.join(output_dir, "metrics_radar.jpg"))
 
     # 3. Improvement % Bar Chart
     colors = ["#FF6B6B" if d < 0 else "#4ECDC4" for d in deltas]
@@ -92,7 +92,7 @@ def plot_metrics_comparison(results: dict, output_dir: str):
         plot_bgcolor="#FAFAFA",
         height=420,
     )
-    fig3.write_html(os.path.join(output_dir, "improvement_percentage.html"))
+    fig3.write_image(os.path.join(output_dir, "improvement_percentage.jpg"))
 
     # 4. Perplexity Comparison
     b_ppl = base.get("perplexity", 0)
@@ -114,7 +114,7 @@ def plot_metrics_comparison(results: dict, output_dir: str):
         plot_bgcolor="#FAFAFA",
         height=420,
     )
-    fig4.write_html(os.path.join(output_dir, "perplexity_comparison.html"))
+    fig4.write_image(os.path.join(output_dir, "perplexity_comparison.jpg"))
 
     print("✅ Evaluation metric plots generated.")
 
@@ -142,7 +142,7 @@ def plot_catastrophic_forgetting(results: dict, output_dir: str):
         plot_bgcolor="#FAFAFA",
         height=450,
     )
-    fig.write_html(os.path.join(output_dir, "catastrophic_forgetting.html"))
+    fig.write_image(os.path.join(output_dir, "catastrophic_forgetting.jpg"))
     print("✅ Catastrophic forgetting plot generated.")
 
 
@@ -192,8 +192,37 @@ def plot_training_loss(model_dir: str, output_dir: str):
         plot_bgcolor="#FAFAFA",
         height=450,
     )
-    fig.write_html(os.path.join(output_dir, "training_loss.html"))
+    fig.write_image(os.path.join(output_dir, "training_loss.jpg"))
     print("✅ Training loss curve generated.")
+
+
+def update_readme_table(results: dict):
+    base = results.get("baseline_scores", {})
+    ft = results.get("finetuned_scores", {})
+    if not base or not ft:
+        return
+
+    table = f"""| Metric | Base Model | Fine-Tuned | % Change |
+|--------|------------|------------|----------|
+| **ROUGE-1** | {base.get("rouge1", 0):.4f} | {ft.get("rouge1", 0):.4f} | {((ft.get("rouge1", 0) - base.get("rouge1", 0)) / max(base.get("rouge1", 1e-9), 1e-9) * 100):.1f}% |
+| **ROUGE-2** | {base.get("rouge2", 0):.4f} | {ft.get("rouge2", 0):.4f} | {((ft.get("rouge2", 0) - base.get("rouge2", 0)) / max(base.get("rouge2", 1e-9), 1e-9) * 100):.1f}% |
+| **ROUGE-L** | {base.get("rougeL", 0):.4f} | {ft.get("rougeL", 0):.4f} | {((ft.get("rougeL", 0) - base.get("rougeL", 0)) / max(base.get("rougeL", 1e-9), 1e-9) * 100):.1f}% |
+| **BLEU** | {base.get("bleu", 0):.4f} | {ft.get("bleu", 0):.4f} | {((ft.get("bleu", 0) - base.get("bleu", 0)) / max(base.get("bleu", 1e-9), 1e-9) * 100):.1f}% |
+| **Perplexity** | {base.get("perplexity", 0):.2f} | {ft.get("perplexity", 0):.2f} | {ft.get("perplexity", 0) - base.get("perplexity", 0):.2f} |"""
+
+    readme_path = "README.md"
+    if not os.path.exists(readme_path):
+        return
+
+    with open(readme_path) as f:
+        content = f.read()
+
+    pattern = r"(<!-- RESULTS_TABLE_START -->\n)(.*?)(\n<!-- RESULTS_TABLE_END -->)"
+    new_content = re.sub(pattern, lambda m: m.group(1) + table + m.group(3), content, flags=re.DOTALL)
+
+    with open(readme_path, "w") as f:
+        f.write(new_content)
+    print("✅ README.md table updated dynamically.")
 
 
 def main():
@@ -206,6 +235,7 @@ def main():
             results = json.load(f)
         plot_metrics_comparison(results, args.output_dir)
         plot_catastrophic_forgetting(results, args.output_dir)
+        update_readme_table(results)
     else:
         print(f"⚠️  No training_results.json found at {res_path}. Run eval_model.py first.")
 
