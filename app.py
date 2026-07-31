@@ -20,10 +20,10 @@ with st.sidebar:
 
     st.header("💡 Example Prompts")
     examples = [
-        "What are the classic symptoms of Type 2 Diabetes?",
-        "How do you treat a mild fever in adults?",
-        "Explain the difference between a virus and a bacteria.",
-        "What is hypertension and how is it managed?",
+        "What condition is suggested by low Cortisol, low Na+ and high K+ in an infant?",
+        "What conditions are associated with low Ca2+ and low PTH?",
+        "What is the term used to describe a condition of low sodium levels and very high proteins or lipids?",
+        "What is the relationship between low dietary calcium and the risk of calcium oxalate stones?",
     ]
 
     # We use session state to populate chat input from buttons
